@@ -54,7 +54,7 @@ export default function Investors() {
   const [openChat, setOpenChat] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
-  function pushMessage(role: "user" | "bot", content: string) {
+  function pushMessage(role: "user" | "assistant", content: string) {
     setMessages(prev => [...prev, { id: crypto.randomUUID(), role, content }]);
   }
 
@@ -68,9 +68,9 @@ export default function Investors() {
 
     try {
       const reply = await askLLM(text);
-      pushMessage("bot", reply);
+      pushMessage("assistant", reply);
     } catch {
-      pushMessage("bot", "⚠️ Unable to reach the model.");
+      pushMessage("assistant", "⚠️ Unable to reach the model.");
     } finally {
       setLoadingChat(false);
       queueMicrotask(() =>

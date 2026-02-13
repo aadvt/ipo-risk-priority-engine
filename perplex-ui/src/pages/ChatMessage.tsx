@@ -1,5 +1,3 @@
-// ChatMessage.tsx — with Markdown rendering
-
 import ReactMarkdown from "react-markdown";
 
 export default function ChatMessage({ msg }: any) {
@@ -14,9 +12,11 @@ export default function ChatMessage({ msg }: any) {
             : "bg-neutral-800 text-white border-white/10"
         }`}
       >
-        <ReactMarkdown className="prose prose-invert prose-sm">
-          {msg.content}
-        </ReactMarkdown>
+        <div className="prose prose-invert prose-sm">
+          <ReactMarkdown>
+            {msg.content}
+          </ReactMarkdown>
+        </div>
       </div>
     </div>
   );
