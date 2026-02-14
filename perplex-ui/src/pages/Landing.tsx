@@ -63,12 +63,7 @@ export default function Landing() {
 
         {/* Footer */}
         <footer className="text-center text-xs sm:text-sm md:text-xs text-white/40 leading-relaxed max-w-2xl md:max-w-3xl mx-auto px-2">
-          This beta release currently evaluates IPO risk and priority scoring
-  across three sectors — Manufacturing, Technology, and Financial Services.
-  Please note that backend services are hosted on a free-tier infrastructure
-  and may experience a brief cold-start delay after periods of inactivity.
-  Additional sector coverage and performance optimizations are planned in
-  future iterations.
+          This beta release currently evaluates IPO risk and priority scoring across three sectors — Manufacturing, Technology, and Financial Services. Please note that backend services are hosted on a free-tier infrastructure and may experience a brief cold-start delay after periods of inactivity. Additional sector coverage and performance optimizations are planned in future iterations.
         </footer>
 
       </div>
