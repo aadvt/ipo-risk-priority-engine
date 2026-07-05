@@ -1,245 +1,282 @@
-# IPO Risk & Priority Scoring System
+# IPO Risk & Priority Engine
+### ML-Driven Cross-Sectional Analysis of IPO Success and Risk Profiling
 
-An ML-powered cross-sectional analysis platform for ranking IPOs using sector-adjusted performance and risk signals.
-
-The system consists of:
-
-* XGBoost-based ranking pipeline
-* Sector-normalized priority scoring
-* SHAP feature explainability
-* FastAPI backend
-* React frontend dashboard
+> A machine learning platform for analyzing Indian IPOs through predictive modeling, risk profiling, and explainable AI to support investors, regulators, and financial institutions in making data-driven decisions.
 
 ---
 
-## System Architecture
+# Overview
+
+Traditional IPO evaluation relies heavily on historical averages, financial ratios, and manual market analysis. However, modern financial markets exhibit highly non-linear relationships influenced by macroeconomic conditions, sector-specific trends, regulatory changes, and investor behavior.
+
+This project introduces an end-to-end machine learning framework capable of transforming raw IPO datasets into actionable investment insights.
+
+Rather than predicting a single numeric outcome, the system prioritizes IPO opportunities using learning-to-rank techniques while simultaneously identifying anomalous offerings, generating interpretable explanations, and producing stakeholder-specific analytical reports.
+
+The platform combines machine learning, feature engineering, explainable AI, and interactive dashboards into a unified decision-support system.
+
+---
+
+# Problem Statement
+
+IPO investment decisions are often affected by:
+
+- Inconsistent financial disclosures
+- Sector-specific performance bias
+- Macroeconomic volatility
+- Limited transparency
+- Difficult-to-interpret statistical models
+
+Existing approaches typically rely on traditional regression models that struggle to capture complex market relationships.
+
+Our objective was to design a scalable ML-driven framework capable of:
+
+- ranking IPO opportunities
+- profiling investment risk
+- identifying market anomalies
+- explaining model decisions
+- supporting data-driven financial analysis
+
+---
+
+# My Contributions
+
+As part of this collaborative project, I was responsible for the machine learning and application development components.
+
+My work included:
+
+- Designing the complete ML pipeline
+- Feature engineering and preprocessing workflows
+- Training and validating XGBoost Ranking and Regression models
+- Implementing GroupKFold cross-validation
+- Developing SHAP-based explainability
+- Building the FastAPI backend
+- Developing the React dashboard used for visualization and reporting
+- Creating automated context generation for AI-powered reporting
+
+Data collection and aggregation from regulatory filings, NSE/BSE datasets, and macroeconomic sources were performed collaboratively within the project team.
+
+---
+
+# Machine Learning Pipeline
+
+The system follows an end-to-end data science workflow.
 
 ```
-Raw Dataset (CSV)
-        ↓
-Feature Engineering + XGBoost Training
-        ↓
-Issuer-Level Priority Scores
-        ↓
-Sector Aggregation & Risk Mix
-        ↓
-Context Builder (JSON + Markdown)
-        ↓
-FastAPI Endpoints
-        ↓
+Raw IPO Data
+        │
+        ▼
+Data Cleaning
+        │
+        ▼
+Feature Engineering
+        │
+        ▼
+XGBoost Learning-to-Rank
+        │
+        ├─────────────► SHAP Explainability
+        │
+        ▼
+Priority Scores
+        │
+        ├─────────────► Sector Analysis
+        │
+        ├─────────────► Risk Profiling
+        │
+        ▼
+FastAPI Backend
+        │
+        ▼
 React Dashboard
 ```
 
 ---
 
-## Machine Learning Pipeline
+# Data Pipeline
 
-**File:** `server/xgb_priority_pipeline.py`
+The project integrates structured financial data collected from:
 
-### 1. Data Input
+- NSE & BSE historical IPO records
+- Company fundamentals
+- Macroeconomic indicators
+- Regulatory information
 
-Reads:
+The preprocessing pipeline performs:
 
-```
-server/data/ipo_core_clean.csv
-```
+- schema validation
+- feature normalization
+- missing value handling
+- temporal feature generation
+- sector grouping
+- leakage prevention
 
-#### Features Used
-
-* `issue_year`
-* `issue_price`
-* `first_day_close`
-* `issue_size_cr`
-* `macro_gdp_growth_pct`
-* `macro_inflation_pct`
-* `macro_unemployment_pct`
-* Derived feature: `years_since_ipo`
-
-#### Target Variable
+A derived feature
 
 ```
-listing_return_pct
+years_since_ipo
 ```
+
+captures changing market behaviour across different regulatory periods.
 
 ---
 
-### 2. Model Training
+# Models Used
 
-**Primary model**
+## XGBoost Ranker
 
-```
-XGBRanker (objective = rank:ndcg)
-```
+Primary prediction engine
 
-**Fallback model**
+Objective:
 
 ```
-XGBRegressor
+rank:ndcg
 ```
 
-**Cross-validation strategy**
-
-```
-GroupKFold (grouped by sector)
-```
-
-This ensures:
-
-* No sector leakage
-* Proper intra-sector ranking
+Rather than minimizing regression error, the model learns to rank IPOs by expected investment priority.
 
 ---
 
-### 3. Priority Scoring
+## XGBoost Regressor
 
-Raw model outputs are normalized sector-wise using min-max scaling:
-
-```
-priority_score_0_100
-```
-
-Issuers are then ranked within each sector:
-
-```
-sector_rank
-```
-
-This makes scores comparable within sectors.
+Fallback model for estimating expected listing returns when ranking constraints are insufficient.
 
 ---
 
-### 4. Sector Aggregation
+## GroupKFold Validation
 
-Outputs generated:
-
-```
-analysis/priority_xgb_sector.csv
-analysis/sector_summary.csv
-analysis/shap_mean_abs.csv (optional)
-```
-
-Sector summary includes:
-
-* Sector priority score (mean issuer priority)
-* Mean return
-* Median return
-* Risk tier distribution percentages
+Sector-aware validation prevents information leakage between companies belonging to the same industry.
 
 ---
 
-## Context Builder
+## SHAP Explainability
 
-**File:** `server/context_builder.py`
-
-### Inputs
-
-* `priority_xgb_sector.csv`
-* `sector_summary.csv`
-* `shap_mean_abs.csv`
-
-### Outputs
-
-```
-analysis/context.json
-analysis/context.md
-```
-
-### Purpose
-
-* API responses
-* Report generation
-* LLM grounding context
+SHAP values provide feature-level explanations for every prediction, allowing users to understand why an IPO received a particular priority score.
 
 ---
 
-## FastAPI Backend
+# Key Features
 
-**Main file:** `server/app.py`
+✔ Machine Learning Based IPO Ranking
 
-### Available Endpoints
+✔ Sector-Normalized Priority Scores
 
-| Endpoint              | Description                  |
-| --------------------- | ---------------------------- |
-| `POST /train`         | Runs ML training pipeline    |
-| `GET /scores`         | Issuer-level priority data   |
-| `GET /sector-summary` | Sector-level aggregates      |
-| `GET /context`        | Full structured JSON context |
-| `GET /report`         | Markdown summary report      |
+✔ Explainable AI (SHAP)
+
+✔ Risk Profiling
+
+✔ Interactive Dashboard
+
+✔ FastAPI REST Backend
+
+✔ React Frontend
+
+✔ AI Report Generation
 
 ---
+
+# Technology Stack
+
+## Machine Learning
+
+- Python
+- XGBoost
+- Scikit-learn
+- SHAP
+- Pandas
+- NumPy
+
+## Backend
+
+- FastAPI
 
 ## Frontend
 
-Located in:
+- React
+- TypeScript
 
-```
-perplex-ui/
-```
+## Database
 
-Consumes:
-
-```
-VITE_API_URL
-```
-
-Dashboards include:
-
-* Investors
-* Regulators
-* AI Insight Assistant
+- PostgreSQL
 
 ---
 
-## How to Run
+# Repository Structure
 
-### Backend
+```
+server/
+│
+├── app.py
+├── context_builder.py
+├── xgb_priority_pipeline.py
+├── analysis/
+└── data/
+
+perplex-ui/
+```
+
+---
+
+# API Endpoints
+
+| Endpoint | Description |
+|----------|-------------|
+| POST /train | Train ML pipeline |
+| GET /scores | Issuer predictions |
+| GET /sector-summary | Sector analysis |
+| GET /context | Structured ML context |
+| GET /report | Markdown report |
+
+---
+
+# Running the Project
+
+## Backend
 
 ```bash
 cd server
+
 python -m venv .venv
-
-# Windows
-.\.venv\Scripts\activate
-
-# macOS/Linux
-source .venv/bin/activate
 
 pip install -r requirements.txt
 
 python xgb_priority_pipeline.py
+
 python context_builder.py
 
 python -m uvicorn app:app --reload
 ```
 
----
-
-### Frontend
+## Frontend
 
 ```bash
 cd perplex-ui
+
 npm install
+
 npm run dev
 ```
 
 ---
 
-## Production Flow
+# Future Improvements
 
-1. Train model
-2. Generate context
-3. Deploy FastAPI backend
-4. Deploy frontend (e.g., Vercel)
-5. Set `VITE_API_URL` to backend URL
+- Integration of live IPO feeds
+- Financial news sentiment analysis using FinBERT
+- Real-time market monitoring
+- Advanced anomaly detection
+- Portfolio optimization
+- Cloud deployment pipeline
 
 ---
 
-## Data Policy
+# Research Focus
 
-Raw datasets are excluded from this repository.
+This project demonstrates practical applications of:
 
-To run locally:
-
-1. Add required CSV files to `server/data/`
-2. Run the training pipeline
-3. Start the backend server
+- Machine Learning
+- Financial Data Analytics
+- Explainable AI
+- Learning-to-Rank Models
+- Data Engineering
+- Predictive Analytics
+- Decision Support Systems
